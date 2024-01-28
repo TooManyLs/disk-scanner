@@ -202,15 +202,19 @@ def create_trace(tree, path='', depth=0):
     return ids, labels, parents, values
 
 ids, labels, parents, values = create_trace(sizes)
-
 fig = go.Figure(go.Sunburst(
     ids=ids,
     labels=labels,
     parents=parents,
     values=values,
-    hovertemplate='<b>%{label}</b>: %{customdata}<extra></extra>',
+    hovertemplate='<b>%{label}</b>: %{customdata}<br>%{id}<extra></extra>',
     customdata=[format_size(v) for v in values],
     maxdepth=4,
-))
+    textfont={'family': "monospace"},
+    leaf={'opacity': 0.5},
+    marker={"line": {"width": 0.5}},
+    insidetextorientation='horizontal',
 
+))
+fig.update_layout(uniformtext=dict(minsize=10, mode='hide'))
 fig.show()
