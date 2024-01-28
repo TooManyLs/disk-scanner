@@ -209,7 +209,8 @@ fig = go.Figure(go.Sunburst(
     parents=parents,
     values=values,
     hovertemplate='<b>%{label}</b>: %{customdata}<extra></extra>',
-    customdata=[format_size(v) for v in values]
+    customdata=[format_size(v) for v in values],
+    maxdepth=4,
 ))
 
 fig.show()
