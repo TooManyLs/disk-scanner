@@ -150,26 +150,26 @@ def get_size(path):
                 elif entry.is_dir(follow_symlinks=False):
                     total += get_size(entry.path)
     except PermissionError:
-        pass
-        # print(f"Skipped {path} due to PermissionError")
+        print(f"Skipped {path} due to PermissionError")
     except FileNotFoundError:
-        pass
-        # print(f"{path} not found")
+        print(f"{path} not found")
     return total
 
 def get_directory_size(path):
-    tree = {'total_size': get_size(path)}
+    tree = {"total_size": get_size(path)}
     try:
         with os.scandir(path) as it:
             for entry in it:
                 if entry.is_dir(follow_symlinks=False):
-                    tree[entry.name] = get_directory_size(entry.path)
+                    dir_size = get_size(entry.path)
+                    if dir_size >= MB:
+                        tree[entry.name] = get_directory_size(entry.path)
     except PermissionError:
-        print(f"Skipped {path} due to PermissionError")
+        pass
     except FileNotFoundError:
-        print(f"{path} not found")
+        pass
     return tree
-path = "D:\\"
+path = "C:\\"
 
 folders = [os.path.join(path, name) for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))]
 
@@ -182,21 +182,20 @@ def format_size(size):
         return f"{size/GB:.2f} GB"
     
 
-def create_trace(tree, path='', depth=0):
+def create_trace(tree, path=""):
     ids = []
     labels = []
     parents = []
     values = []
 
-    # if depth <= 100:  # Only proceed if depth is less than or equal to desired value (add depth+1 on line 199)
     for name, subtree in tree.items():
-        if name == 'total_size':
+        if name == "total_size":
             continue
         new_path = path + '\\' + name if path else name
         ids.append(new_path)
         labels.append(name)
         parents.append(path)
-        values.append(subtree['total_size'])
+        values.append(subtree["total_size"])
         if isinstance(subtree, dict):
             sub_ids, sub_labels, sub_parents, sub_values = create_trace(subtree, new_path)
             ids.extend(sub_ids)
@@ -213,15 +212,15 @@ fig = go.Figure(go.Sunburst(
     labels=labels,
     parents=parents,
     values=values,
-    hovertemplate='<b>%{label}</b>: %{customdata}<br>%{id}<extra></extra>',
+    hovertemplate="<b>%{label}</b>: %{customdata}<br>%{id}<extra></extra>",
     customdata=[format_size(v) for v in values],
     maxdepth=4,
-    textfont={'family': "monospace"},
-    leaf={'opacity': 0.5},
+    textfont={"family": "monospace"},
+    leaf={"opacity": 0.5},
     marker={"line": {"width": 0.5}},
-    insidetextorientation='horizontal',
+    insidetextorientation="horizontal",
 
 ))
 # fig.update_layout(uniformtext=dict(minsize=12, mode='hide'))
-fig.update_traces(root={'color':'rgba(42, 42, 42, 1)'}, outsidetextfont={'size':24, 'color':'white'})
+fig.update_traces(root={"color":"rgba(42, 42, 42, 1)"}, outsidetextfont={"size":24, "color":"white"})
 fig.show()
