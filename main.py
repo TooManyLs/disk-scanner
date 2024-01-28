@@ -169,7 +169,7 @@ def get_directory_size(path):
     except FileNotFoundError:
         print(f"{path} not found")
     return tree
-path = "C:\\"
+path = "D:\\"
 
 folders = [os.path.join(path, name) for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))]
 
