@@ -1,6 +1,7 @@
 import shutil
 import os
 import sys
+import time
 import plotly.graph_objects as go
 
 MiB = 1024**2
@@ -8,7 +9,9 @@ GiB = 1024**3
 GB = 1000**3
 MB = 1000**2
 
-def get_size(path):
+def get_size(path, sizes, checked_dirs):
+    if path in checked_dirs:
+        return sizes.get(path, 0)
     total = 0
     try:
         with os.scandir(path) as it:
@@ -18,20 +21,24 @@ def get_size(path):
                 if entry.is_file(follow_symlinks=False):
                     total += entry.stat(follow_symlinks=False).st_size
                 elif entry.is_dir(follow_symlinks=False):
-                    total += get_size(entry.path)
+                    total += get_size(entry.path, sizes, checked_dirs)
     except PermissionError:
         print(f"Skipped {path} due to PermissionError")
     except FileNotFoundError:
         print(f"{path} not found")
+    sizes[path] = total
+    checked_dirs.add(path)
     return total
 
 def get_directory_size(path):
-    tree = {"total_size": get_size(path)}
+    sizes = {}
+    checked_dirs = set()
+    tree = {"total_size": get_size(path, sizes, checked_dirs)}
     try:
         with os.scandir(path) as it:
             for entry in it:
                 if entry.is_dir(follow_symlinks=False):
-                    dir_size = get_size(entry.path)
+                    dir_size = sizes.get(entry.path, get_size(entry.path, sizes, checked_dirs))
                     if dir_size >= MB:
                         tree[entry.name] = get_directory_size(entry.path)
     except PermissionError:
@@ -75,7 +82,10 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def run_scan(path):
+    t1 = time.perf_counter()
     sizes = {path:get_directory_size(path)}
+    t2 = time.perf_counter() - t1
+    print(f"{path} scanned in {t2:.3f} seconds")
     ids, labels, parents, values = create_trace(sizes)
     total, used, free = shutil.disk_usage(path)
     labels[0] = f"{path}<br>{values[0]/GB:.1f}GB<br>/{total/GB:.1f}GB"
