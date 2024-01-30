@@ -8,7 +8,7 @@ import os
 import sys
 import atexit
 
-import main
+from main import run_scan, resource_path
 
 class ScanWorker(QObject):
     finished = Signal()
@@ -17,28 +17,36 @@ class ScanWorker(QObject):
         self.drive = drive
 
     def run(self):
-        main.run_scan(self.drive)
+        run_scan(self.drive)
         print("done.")
         self.finished.emit()
 
 class MainWindow(QMainWindow):
-    curr = os.path.dirname(os.path.abspath(__file__))
-    html = os.path.join(curr, "html\\disk.html")
-    load = os.path.join(curr, "html\\loading.html")
-    start_screen = os.path.join(curr, "html\\start.html")
+    html = resource_path("html/disk.html")
+    load = resource_path("html/loading.html")
+    start_screen = resource_path("html/start.html")
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle("Disk scanner")
+        self.setWindowIcon(QIcon(resource_path("disk_scan.ico")))
+        if os.name == 'nt':
+            myappid = 'toomanyls_.disk_scanner.0.0.1'
+            windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
         self.view = QWebEngineView()
         
-        bitmask = windll.kernel32.GetLogicalDrives()
         drives = []
-        for letter in ascii_uppercase:
-            if bitmask & 1:
-                drives.append(f"{letter}:\\")
-            bitmask >>= 1
+        if os.name =="nt":
+            bitmask = windll.kernel32.GetLogicalDrives()
+            for letter in ascii_uppercase:
+                if bitmask & 1:
+                    drives.append(f"{letter}:/")
+                bitmask >>= 1
+        elif os.name == "posix":
+            drives.append("/")
+        else:
+            raise NotImplementedError(f"Unsupported platform: {os.name}")
 
         if not os.path.exists(self.html):
             self.view.load(QUrl.fromLocalFile(self.start_screen))
@@ -52,7 +60,7 @@ class MainWindow(QMainWindow):
         button_layout = QVBoxLayout()
         self.buttons = []
         for i, drive in enumerate(drives):
-            button = QPushButton(f'{drive}')
+            button = QPushButton(f"{drive}")
             button.clicked.connect(lambda checked=False, drive=drive: self.load_scan(drive))
             button.setFixedWidth(70)
             button.setFixedHeight(30)
@@ -64,11 +72,11 @@ class MainWindow(QMainWindow):
 
         layout.addLayout(button_layout, 1, 1)
 
-        load_html_button = QPushButton('')
+        load_html_button = QPushButton("")
         load_html_button.clicked.connect(self.home)
         load_html_button.setFixedWidth(70)
         load_html_button.setFixedHeight(70)
-        load_html_button.setIcon(QIcon(os.path.join(self.curr, 'public\\home.png')))
+        load_html_button.setIcon(QIcon(resource_path("public/home.png")))
         load_html_button.setIconSize(QSize(30, 30))
 
         button_layout.addWidget(load_html_button)
