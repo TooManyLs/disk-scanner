@@ -1,2 +1,6 @@
 env/
 html/disk.html
+build/
+dist/
+ui.spec
+__pycache__/
