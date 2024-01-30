@@ -1,5 +1,6 @@
 import shutil
 import os
+import sys
 import plotly.graph_objects as go
 
 MiB = 1024**2
@@ -12,6 +13,8 @@ def get_size(path):
     try:
         with os.scandir(path) as it:
             for entry in it:
+                if os.name == "posix" and ("/dev" in entry.path or "/proc" in entry.path or "/sys" in entry.path):
+                    continue        #skip directories with pseudo-files on unix-based systems.
                 if entry.is_file(follow_symlinks=False):
                     total += entry.stat(follow_symlinks=False).st_size
                 elif entry.is_dir(follow_symlinks=False):
@@ -52,7 +55,7 @@ def create_trace(tree, path=""):
     for name, subtree in tree.items():
         if name == "total_size":
             continue
-        new_path = path + '\\' + name if path else name
+        new_path = path + '/' + name if path else name
         ids.append(new_path)
         labels.append(name)
         parents.append(path)
@@ -66,6 +69,10 @@ def create_trace(tree, path=""):
     return ids, labels, parents, values
 
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
 
 def run_scan(path):
     sizes = {path:get_directory_size(path)}
@@ -86,5 +93,6 @@ def run_scan(path):
         insidetextorientation="horizontal",
     ))
     fig.update_traces(root={"color":"rgba(42, 42, 42, 1)"}, outsidetextfont={"size":24, "color":"white"})
-    curr = os.path.dirname(os.path.abspath(__file__))
-    fig.write_html(os.path.join(curr, 'html\\disk.html'))
+    fig.write_html(resource_path("html/disk.html"))     #comment for linux/mac
+    # fig.show()        #uncomment for linux/mac
+# run_scan("/")       #uncomment for linux/mac
