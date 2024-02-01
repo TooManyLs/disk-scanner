@@ -99,21 +99,26 @@ def run_scan(path):
         maxdepth=4,
         textfont={"family": "monospace"},
         leaf={"opacity": 0.5},
-        marker={"line": {"width": 1}},
+        marker={"line": {"width": 1.5}},
         insidetextorientation="horizontal",
     ))
     conf = {
     "displayModeBar": False,
-
     }
     fig.update_layout(
+        # paper_bgcolor="#1e1e1e",          #dark theme
         hoverlabel=dict(
             font_size=12,
             font_family="monospace",
-
         )
+        
     )
     fig.update_traces(root={"color":"rgba(42, 42, 42, 1)"}, outsidetextfont={"size":24, "color":"white"})
     fig.write_html(resource_path("html/disk.html"), config=conf)     #comment for linux/mac
+    # with open(resource_path("html/disk.html"), "r", encoding="utf-8") as f:
+    #     data = f.readlines()
+    #     data[2] = f'<body style="background-color: #1e1e1e;">'
+    # with open(resource_path("html/disk.html"), "w", encoding="utf-8") as f:       #dark theme
+    #     f.writelines(data)
     # fig.show(config=conf)       #uncomment for linux/mac
 # run_scan("/")       #uncomment for linux/mac

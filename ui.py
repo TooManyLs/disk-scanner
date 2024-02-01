@@ -31,6 +31,10 @@ class ScanWorker(QObject):
         print("done.")
         self.finished.emit()
 
+class MyWebEngineView(QWebEngineView):
+    def contextMenuEvent(self, event):
+        pass    
+    
 class MainWindow(QMainWindow):
     html = resource_path("html/disk.html")
     load = resource_path("html/loading.html")
@@ -44,7 +48,7 @@ class MainWindow(QMainWindow):
             myappid = "toomanyls_.disk_scanner.0.0.1"
             windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
-        self.view = QWebEngineView()
+        self.view = MyWebEngineView()
         
         drives = []
         if os.name =="nt":
@@ -75,23 +79,21 @@ class MainWindow(QMainWindow):
             button.setFixedHeight(30)
             button_layout.addWidget(button)
             self.buttons.append(button)
-
-        new_layout = QVBoxLayout()
         drive_group.setLayout(button_layout)
         layout.addWidget(drive_group, 1, 10)
+
         spacer = QVBoxLayout()
         spacer.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
         layout.addItem(spacer, 2, 10)
 
-
+        action_group = QGroupBox("Action:")
+        new_layout = QVBoxLayout()
         load_html_button = QPushButton("")
         load_html_button.clicked.connect(self.home)
         load_html_button.setFixedHeight(70)
         load_html_button.setIcon(QIcon(resource_path("public/home.png")))
+        # load_html_button.setIcon(QIcon(resource_path("public/homeinv.png")))      #dark theme
         load_html_button.setIconSize(QSize(30, 30))
-
-        action_group = QGroupBox("Action:")
-
         new_layout.addWidget(load_html_button)
         action_group.setLayout(new_layout)
         layout.addWidget(action_group, 3, 10)
@@ -131,13 +133,43 @@ class MainWindow(QMainWindow):
             os.remove(self.html)
 
 app = QApplication(sys.argv)
+# app.setStyle("Fusion")                                #dark theme
 
 window = MainWindow()
 window.setStyleSheet("""QPushButton{
-                     background-color: white; 
-                     border: none; 
-                     border-radius: 7px};
-                     """)
+                        background-color: #e0e0e0; 
+                        border: none; 
+                        border-radius: 7px;
+                        font-family: monospace, Consolas, Courier;
+                        font-weight: bold;
+                    }
+                    QPushButton::hover{background-color: #cfcfcf;}
+                    QPushButton::pressed{background-color: #272727; color: #f1f1f1;}
+                    QPushButton::disabled{color: #999999;}
+                    QGroupBox{
+                        font-family: monospace, Consolas, Courier; 
+                        font-weight: bold;                     
+                    }
+                    """)
+# window.setStyleSheet("""                              #dark theme
+#                     QPushButton{
+#                         background-color: #272727; 
+#                         border: none; 
+#                         border-radius: 7px;
+#                         font-family: monospace, Consolas, Courier;
+#                         font-weight: bold;
+#                         color: #f1f1f1;
+#                     }
+#                     QPushButton::hover{background-color: #3a3a3a;}
+#                     QPushButton::pressed{background-color: #e0e0e0; color: #272727;}
+#                     QPushButton::disabled{color: #666666;}
+#                     QGroupBox{
+#                         font-family: monospace, Consolas, Courier; 
+#                         font-weight: bold;
+#                         color: #f1f1f1;
+#                     }
+#                     """)
+
 window.resize(900,800)
 window.show()
 sys.exit(app.exec())
