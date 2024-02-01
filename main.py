@@ -1,7 +1,7 @@
 import shutil
 import os
 import sys
-import time
+from time import perf_counter
 import plotly.graph_objects as go
 
 MiB = 1024**2
@@ -51,7 +51,7 @@ def format_size(size):
     if size < GB:
         return f"{size/MB:.2f} MB"
     else:
-        return f"{size/GB:.2f} GB"  
+        return f"{size/GB:.2f} GB"
 
 def create_trace(tree, path=""):
     ids = []
@@ -82,9 +82,9 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def run_scan(path):
-    t1 = time.perf_counter()
+    t1 = perf_counter()
     sizes = {path:get_directory_size(path)}
-    t2 = time.perf_counter() - t1
+    t2 = perf_counter() - t1
     print(f"{path} scanned in {t2:.3f} seconds")
     ids, labels, parents, values = create_trace(sizes)
     total, used, free = shutil.disk_usage(path)
@@ -99,10 +99,21 @@ def run_scan(path):
         maxdepth=4,
         textfont={"family": "monospace"},
         leaf={"opacity": 0.5},
-        marker={"line": {"width": 0.5}},
+        marker={"line": {"width": 1}},
         insidetextorientation="horizontal",
     ))
+    conf = {
+    "displayModeBar": False,
+
+    }
+    fig.update_layout(
+        hoverlabel=dict(
+            font_size=12,
+            font_family="monospace",
+
+        )
+    )
     fig.update_traces(root={"color":"rgba(42, 42, 42, 1)"}, outsidetextfont={"size":24, "color":"white"})
-    fig.write_html(resource_path("html/disk.html"))     #comment for linux/mac
-    # fig.show()        #uncomment for linux/mac
+    fig.write_html(resource_path("html/disk.html"), config=conf)     #comment for linux/mac
+    # fig.show(config=conf)       #uncomment for linux/mac
 # run_scan("/")       #uncomment for linux/mac

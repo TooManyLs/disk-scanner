@@ -1,6 +1,16 @@
 from ctypes import windll
 from string import ascii_uppercase
-from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QPushButton, QWidget, QGridLayout, QSpacerItem, QSizePolicy
+from PySide6.QtWidgets import (
+    QApplication, 
+    QMainWindow, 
+    QVBoxLayout, 
+    QPushButton, 
+    QWidget, 
+    QGridLayout, 
+    QSpacerItem, 
+    QSizePolicy,
+    QGroupBox,
+)
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtCore import QUrl, QObject, Signal, QThread, QSize
 from PySide6.QtGui import QIcon
@@ -30,8 +40,8 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Disk scanner")
         self.setWindowIcon(QIcon(resource_path("disk_scan.ico")))
-        if os.name == 'nt':
-            myappid = 'toomanyls_.disk_scanner.0.0.1'
+        if os.name == "nt":
+            myappid = "toomanyls_.disk_scanner.0.0.1"
             windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
         self.view = QWebEngineView()
@@ -54,37 +64,42 @@ class MainWindow(QMainWindow):
             self.view.load(QUrl.fromLocalFile(self.html))
 
         layout = QGridLayout()
+        layout.addWidget(self.view, 0, 0, -1, 9)
 
-        layout.addWidget(self.view, 0, 0, -1, -1)
-
+        drive_group = QGroupBox("Drives:")
         button_layout = QVBoxLayout()
         self.buttons = []
         for i, drive in enumerate(drives):
             button = QPushButton(f"{drive}")
             button.clicked.connect(lambda checked=False, drive=drive: self.load_scan(drive))
-            button.setFixedWidth(70)
             button.setFixedHeight(30)
             button_layout.addWidget(button)
             self.buttons.append(button)
 
-        # Add a vertical spacer at the top of the button layout
-        button_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        new_layout = QVBoxLayout()
+        drive_group.setLayout(button_layout)
+        layout.addWidget(drive_group, 1, 10)
+        spacer = QVBoxLayout()
+        spacer.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        layout.addItem(spacer, 2, 10)
 
-        layout.addLayout(button_layout, 1, 1)
 
         load_html_button = QPushButton("")
         load_html_button.clicked.connect(self.home)
-        load_html_button.setFixedWidth(70)
         load_html_button.setFixedHeight(70)
         load_html_button.setIcon(QIcon(resource_path("public/home.png")))
         load_html_button.setIconSize(QSize(30, 30))
 
-        button_layout.addWidget(load_html_button)
+        action_group = QGroupBox("Action:")
+
+        new_layout.addWidget(load_html_button)
+        action_group.setLayout(new_layout)
+        layout.addWidget(action_group, 3, 10)
 
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
-        atexit.register(self.cleanup)
+        atexit.register(self.cleanup)       
 
     def load_scan(self, drive):
         self.view.load(QUrl.fromLocalFile(self.load))
@@ -106,6 +121,7 @@ class MainWindow(QMainWindow):
         for button in self.buttons:
             button.setEnabled(True)
 
+
     def home(self):
         if os.path.exists(self.html):
             self.view.load(QUrl.fromLocalFile(self.html))
@@ -117,6 +133,11 @@ class MainWindow(QMainWindow):
 app = QApplication(sys.argv)
 
 window = MainWindow()
+window.setStyleSheet("""QPushButton{
+                     background-color: white; 
+                     border: none; 
+                     border-radius: 7px};
+                     """)
 window.resize(900,800)
 window.show()
 sys.exit(app.exec())
