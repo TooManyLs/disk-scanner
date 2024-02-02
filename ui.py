@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
 )
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtCore import QUrl, QObject, Signal, QThread, QSize, Qt
+from PySide6.QtCore import QUrl, QObject, Signal, QThread, QSize
 from PySide6.QtGui import QIcon
 import os
 import sys

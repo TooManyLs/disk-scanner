@@ -47,11 +47,19 @@ def get_directory_size(path):
         pass
     return tree
 
-def format_size(size):
-    if size < GB:
-        return f"{size/MB:.2f} MB"
-    else:
-        return f"{size/GB:.2f} GB"
+def format_size(size, pre, precision=2):
+    if pre != 10 and pre != 2:
+        raise Exception(f"Invalid prefix value: {pre};\nValid prefixes: 2 (mebibyte...), 10 (megabyte...)")
+    if pre == 10:
+        if size < GB:
+            return f"{size/MB:.{precision}f} MB"
+        else:
+            return f"{size/GB:.{precision}f} GB"
+    if pre == 2:
+        if size < GiB:
+            return f"{size/MiB:.{precision}f} MiB"
+        else:
+            return f"{size/GiB:.{precision}f} GiB"
 
 def create_trace(tree, path=""):
     ids = []
@@ -81,27 +89,31 @@ def resource_path(relative_path):
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
-def run_scan(path):
+
+def run_scan(path, pre=2):
     t1 = perf_counter()
     sizes = {path:get_directory_size(path)}
     t2 = perf_counter() - t1
     print(f"{path} scanned in {t2:.3f} seconds")
     ids, labels, parents, values = create_trace(sizes)
     total, used, free = shutil.disk_usage(path)
-    labels[0] = f"{path}<br>{values[0]/GB:.1f}GB<br>/{total/GB:.1f}GB"
-    fig = go.Figure(go.Sunburst(
-        ids=ids,
-        labels=labels,
-        parents=parents,
-        values=values,
-        hovertemplate="<b>%{label}</b>: %{customdata}<br>%{id}<extra></extra>",
-        customdata=[format_size(v) for v in values],
-        maxdepth=4,
-        textfont={"family": "monospace"},
-        leaf={"opacity": 0.5},
-        marker={"line": {"width": 1.5}},
-        insidetextorientation="horizontal",
-    ))
+    settings = {"ids": ids,
+                "labels":labels, 
+                "parents": parents,
+                "values": values,
+                "maxdepth": 4,
+                "textfont": {"family": "monospace"},
+                "leaf": {"opacity": 0.5},
+                "marker": {"line": {"width": 1.5}},
+                "insidetextorientation": "horizontal",
+                "hovertemplate":"<b>%{label}</b>: %{customdata}<br>%{id}<extra></extra>",
+                }
+    labels[0] = f"{path}<br>{format_size(values[0], pre, 1)}<br>/{format_size(total, pre, 1)}"
+    fig = go.Figure(go.Sunburst( 
+        customdata=[format_size(v, pre) for v in values],
+        **settings
+        )
+    )
     conf = {
     "displayModeBar": False,
     }
@@ -109,8 +121,7 @@ def run_scan(path):
         hoverlabel=dict(
             font_size=12,
             font_family="monospace",
-        )
-        
+        ),       
     )
     fig.update_traces(root={"color":"rgba(42, 42, 42, 1)"}, outsidetextfont={"size":24, "color":"white"})
     fig.write_html(resource_path("html/disk.html"), config=conf)     #comment for linux/mac
