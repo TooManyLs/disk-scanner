@@ -12,12 +12,11 @@ from PySide6.QtWidgets import (
     QGroupBox,
 )
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtCore import QUrl, QObject, Signal, QThread, QSize
+from PySide6.QtCore import QUrl, QObject, Signal, QThread, QSize, Qt
 from PySide6.QtGui import QIcon
 import os
 import sys
 import atexit
-
 from main import run_scan, resource_path
 
 class ScanWorker(QObject):
@@ -92,7 +91,6 @@ class MainWindow(QMainWindow):
         load_html_button.clicked.connect(self.home)
         load_html_button.setFixedHeight(70)
         load_html_button.setIcon(QIcon(resource_path("public/home.png")))
-        # load_html_button.setIcon(QIcon(resource_path("public/homeinv.png")))      #dark theme
         load_html_button.setIconSize(QSize(30, 30))
         new_layout.addWidget(load_html_button)
         action_group.setLayout(new_layout)
@@ -101,7 +99,9 @@ class MainWindow(QMainWindow):
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
-        atexit.register(self.cleanup)       
+        self.setMinimumHeight(600)
+        self.setMinimumWidth(800)
+        atexit.register(self.cleanup)
 
     def load_scan(self, drive):
         self.view.load(QUrl.fromLocalFile(self.load))
@@ -123,7 +123,6 @@ class MainWindow(QMainWindow):
         for button in self.buttons:
             button.setEnabled(True)
 
-
     def home(self):
         if os.path.exists(self.html):
             self.view.load(QUrl.fromLocalFile(self.html))
@@ -133,43 +132,24 @@ class MainWindow(QMainWindow):
             os.remove(self.html)
 
 app = QApplication(sys.argv)
-# app.setStyle("Fusion")                                #dark theme
 
 window = MainWindow()
 window.setStyleSheet("""QPushButton{
-                        background-color: #e0e0e0; 
+                        background-color: #e0e0e0;
+                        color: black; 
                         border: none; 
                         border-radius: 7px;
                         font-family: monospace, Consolas, Courier;
                         font-weight: bold;
                     }
                     QPushButton::hover{background-color: #cfcfcf;}
-                    QPushButton::pressed{background-color: #272727; color: #f1f1f1;}
+                    QPushButton::pressed{background-color: #1e1e1e; color: #f1f1f1;}
                     QPushButton::disabled{color: #999999;}
                     QGroupBox{
                         font-family: monospace, Consolas, Courier; 
                         font-weight: bold;                     
                     }
                     """)
-# window.setStyleSheet("""                              #dark theme
-#                     QPushButton{
-#                         background-color: #272727; 
-#                         border: none; 
-#                         border-radius: 7px;
-#                         font-family: monospace, Consolas, Courier;
-#                         font-weight: bold;
-#                         color: #f1f1f1;
-#                     }
-#                     QPushButton::hover{background-color: #3a3a3a;}
-#                     QPushButton::pressed{background-color: #e0e0e0; color: #272727;}
-#                     QPushButton::disabled{color: #666666;}
-#                     QGroupBox{
-#                         font-family: monospace, Consolas, Courier; 
-#                         font-weight: bold;
-#                         color: #f1f1f1;
-#                     }
-#                     """)
-
 window.resize(900,800)
 window.show()
 sys.exit(app.exec())
