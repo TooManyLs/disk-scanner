@@ -48,7 +48,6 @@ class MainWindow(QMainWindow):
             windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
         self.view = MyWebEngineView()
-        
         drives = []
         if os.name =="nt":
             bitmask = windll.kernel32.GetLogicalDrives()
@@ -134,22 +133,27 @@ class MainWindow(QMainWindow):
 app = QApplication(sys.argv)
 
 window = MainWindow()
-window.setStyleSheet("""QPushButton{
-                        background-color: #e0e0e0;
-                        color: black; 
-                        border: none; 
-                        border-radius: 7px;
-                        font-family: monospace, Consolas, Courier;
-                        font-weight: bold;
-                    }
-                    QPushButton::hover{background-color: #cfcfcf;}
-                    QPushButton::pressed{background-color: #1e1e1e; color: #f1f1f1;}
-                    QPushButton::disabled{color: #999999;}
-                    QGroupBox{
-                        font-family: monospace, Consolas, Courier; 
-                        font-weight: bold;                     
-                    }
-                    """)
+window.setStyleSheet(
+    """
+    QMainWindow{background-color: #f0f0f0}
+    QPushButton{
+        background-color: #e0e0e0;
+        color: black; 
+        border: none; 
+        border-radius: 7px;
+        font-family: monospace, Consolas, Courier;
+        font-weight: bold;
+    }
+    QPushButton::hover{background-color: #cfcfcf;}
+    QPushButton::pressed{background-color: #1e1e1e; color: #f1f1f1;}
+    QPushButton::disabled{color: #999999;}
+    QGroupBox{
+        font-family: monospace, Consolas, Courier; 
+        font-weight: bold;
+        color: black;                     
+    }
+    """
+)
 window.resize(900,800)
 window.show()
 sys.exit(app.exec())
