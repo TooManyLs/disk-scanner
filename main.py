@@ -1,7 +1,6 @@
 import shutil
 import os
 import sys
-from time import perf_counter
 import plotly.graph_objects as go
 
 MiB = 1024**2
@@ -16,8 +15,9 @@ def get_size(path, sizes, checked_dirs):
     try:
         with os.scandir(path) as it:
             for entry in it:
-                if os.name == "posix" and ("/dev" in entry.path or "/proc" in entry.path or "/sys" in entry.path):
-                    continue        #skip directories with pseudo-files on unix-based systems.
+                if os.name == "posix" and \
+                ("/dev" in entry.path or "/proc" in entry.path or "/sys" in entry.path):
+                    continue    #skip directories with pseudo-files on unix-based systems.
                 if entry.is_file(follow_symlinks=False):
                     total += entry.stat(follow_symlinks=False).st_size
                 elif entry.is_dir(follow_symlinks=False):
@@ -91,12 +91,9 @@ def resource_path(relative_path):
 
 
 def run_scan(path, pre=2):
-    t1 = perf_counter()
     sizes = {path:get_directory_size(path)}
-    t2 = perf_counter() - t1
-    print(f"{path} scanned in {t2:.3f} seconds")
     ids, labels, parents, values = create_trace(sizes)
-    total, used, free = shutil.disk_usage(path)
+    total = shutil.disk_usage(path)[0]
     settings = {"ids": ids,
                 "labels":labels, 
                 "parents": parents,
@@ -123,7 +120,5 @@ def run_scan(path, pre=2):
             font_family="monospace",
         ),       
     )
-    fig.update_traces(root={"color":"rgba(42, 42, 42, 1)"}, outsidetextfont={"size":24, "color":"white"})
-    fig.write_html(resource_path("html/disk.html"), config=conf)     #comment for linux/mac
-    # fig.show(config=conf)       #uncomment for linux/mac
-# run_scan("/")       #uncomment for linux/mac
+    fig.update_traces(root={"color":"#1e1e1e"}, outsidetextfont={"size":24, "color":"white"})
+    fig.write_html(resource_path("html/disk.html"), config=conf)

@@ -1,4 +1,7 @@
-from ctypes import windll
+try:
+    from ctypes import windll
+except:
+    pass
 from string import ascii_uppercase
 from PySide6.QtWidgets import (
     QApplication, 
@@ -43,13 +46,10 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Disk scanner")
         self.setWindowIcon(QIcon(resource_path("disk_scan.ico")))
+        drives = []
         if os.name == "nt":
             myappid = "toomanyls_.disk_scanner.0.0.1"
             windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-
-        self.view = MyWebEngineView()
-        drives = []
-        if os.name =="nt":
             bitmask = windll.kernel32.GetLogicalDrives()
             for letter in ascii_uppercase:
                 if bitmask & 1:
@@ -60,6 +60,7 @@ class MainWindow(QMainWindow):
         else:
             raise NotImplementedError(f"Unsupported platform: {os.name}")
 
+        self.view = MyWebEngineView()
         if not os.path.exists(self.html):
             self.view.load(QUrl.fromLocalFile(self.start_screen))
         else:
